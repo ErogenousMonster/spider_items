@@ -112,8 +112,8 @@ MYSQLPWD = 'root'
 # REDIS = 'localhost'
 # REDIS = '95.193.198.131'
 # REDIS_PORT = 6379
-# REDIS_PASSWORD = 'xx'
+# REDIS_PASSWORD = 'gorgeous'
 
 # 设置logging
-# LOG_ENABLED = True
-# LOG_LEVEL = 'INFO'
+LOG_ENABLED = True
+LOG_LEVEL = 'INFO'
