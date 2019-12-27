@@ -45,33 +45,34 @@ class BilibiliSpider(scrapy.Spider):
         """
         mid_list = re.findall(r'"mid":(\d+),', response.text)
         for mid in mid_list:
-            # 如果不在 redis set 则继续爬取
-            if not self.con.sismember(self.redis_key, mid):
-                self.con.sadd(self.redis_key, mid)
-                yield scrapy.Request(url=self.user_info_url.format(mid),
-                                     meta={'mid': mid}, callback=self.parse_user)
+            yield scrapy.Request(url=self.user_info_url.format(mid),
+                                 meta={'mid': mid}, callback=self.parse_user)
 
     def parse_user(self, response):
         mid = response.meta.get('mid')
-        json_dict = json.loads(response.text)
-        user_item = UserInfoItem()
-        json_data = json_dict.get('data')
-        # 有数据再存入
-        if json_data:
-            # 设置默认值，防止没有数据
-            user_item['name'] = json_data.get('name', 'NULL')
-            user_item['mid'] = json_data.get('mid', 'NULL')
-            user_item['sex'] = json_data.get('sex', 'NULL')
-            user_item['vip_type'] = json_data.get('vip').get('type')
+        # 如果不在 redis set 则继续爬取
+        if not self.con.sismember(self.redis_key, mid):
+            self.con.sadd(self.redis_key, mid)
+            json_dict = json.loads(response.text)
+            user_item = UserInfoItem()
+            json_data = json_dict.get('data')
+            # 有数据再存入
+            if json_data:
+                # 设置默认值，防止没有数据
+                user_item['name'] = json_data.get('name', 'NULL')
+                user_item['mid'] = json_data.get('mid', 'NULL')
+                user_item['sex'] = json_data.get('sex', 'NULL')
+                user_item['vip_type'] = json_data.get('vip').get('type')
+                user_item['birthday'] = json_data.get('birthday', 'NULL')
 
-        # follow data
-        yield scrapy.Request(url=self.fan_follow_list_url.format(self.follow_param, mid),
-                             callback=self.parse_follow_fans)
-        # fans data
-        yield scrapy.Request(url=self.fan_follow_list_url.format(self.fans_param, mid),
-                             callback=self.parse_follow_fans)
-        yield scrapy.Request(url=self.fan_follow_num_url.format(mid),
-                             meta={'mid': mid, 'item': user_item}, callback=self.parse_num)
+            # follow data
+            yield scrapy.Request(url=self.fan_follow_list_url.format(self.follow_param, mid),
+                                 callback=self.parse_follow_fans)
+            # fans data
+            yield scrapy.Request(url=self.fan_follow_list_url.format(self.fans_param, mid),
+                                 callback=self.parse_follow_fans)
+            yield scrapy.Request(url=self.fan_follow_num_url.format(mid),
+                                 meta={'mid': mid, 'item': user_item}, callback=self.parse_num)
 
     def parse_num(self, response):
         user_item = response.meta.get('item')

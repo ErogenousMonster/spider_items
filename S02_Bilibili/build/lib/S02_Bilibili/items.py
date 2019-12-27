@@ -22,3 +22,4 @@ class UserInfoItem(scrapy.Item):
     follow = scrapy.Field()  # 用户关注数
     fans = scrapy.Field()  # 用户粉丝数
     vip_type = scrapy.Field()  # vip 0：非会员 1：大会员 2：年度大会员
+    birthday = scrapy.Field()  # 生日
